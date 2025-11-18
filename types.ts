@@ -24,6 +24,7 @@ export interface GameState {
   badges: number; // Chips badges
   currentOrder: IngredientType[];
   playerStack: IngredientType[];
+  redoStack: IngredientType[];
   timeLeft: number;
   feedbackMessage: string;
   highScores: number[];

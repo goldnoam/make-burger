@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, ContactShadows, Environment } from '@react-three/drei';
-import { Trophy, DollarSign, Clock, Utensils, AlertTriangle, RotateCcw, Play, Star } from 'lucide-react';
+import { Trophy, DollarSign, Clock, Utensils, AlertTriangle, RotateCcw, Play, Star, Undo, Redo } from 'lucide-react';
 import { IngredientType, GameState, INGREDIENTS } from './types';
 import { generateRandomOrder, checkOrder, calculateBonus } from './utils/gameLogic';
 import { generateFiredNotice, generatePromotionMessage } from './services/geminiService';
@@ -50,6 +50,7 @@ export default function App() {
     badges: 0,
     currentOrder: [],
     playerStack: [],
+    redoStack: [],
     timeLeft: 20,
     feedbackMessage: '',
     highScores: [],
@@ -89,6 +90,7 @@ export default function App() {
       badges: 0,
       timeLeft: 20,
       playerStack: [],
+      redoStack: [],
       currentOrder: generateRandomOrder(1),
       feedbackMessage: '',
     }));
@@ -98,12 +100,41 @@ export default function App() {
     if (gameState.screen !== 'PLAYING') return;
     setGameState(prev => ({
       ...prev,
-      playerStack: [...prev.playerStack, type]
+      playerStack: [...prev.playerStack, type],
+      redoStack: [] // Clear redo stack when new action occurs
     }));
   };
 
   const resetStack = () => {
-    setGameState(prev => ({ ...prev, playerStack: [] }));
+    setGameState(prev => ({ ...prev, playerStack: [], redoStack: [] }));
+  };
+
+  const handleUndo = () => {
+    if (gameState.playerStack.length === 0) return;
+    setGameState(prev => {
+      const newStack = [...prev.playerStack];
+      const item = newStack.pop();
+      if (!item) return prev;
+      return {
+        ...prev,
+        playerStack: newStack,
+        redoStack: [item, ...prev.redoStack]
+      };
+    });
+  };
+
+  const handleRedo = () => {
+    if (gameState.redoStack.length === 0) return;
+    setGameState(prev => {
+      const newRedo = [...prev.redoStack];
+      const item = newRedo.shift(); // Remove from front of redo stack
+      if (!item) return prev;
+      return {
+        ...prev,
+        playerStack: [...prev.playerStack, item],
+        redoStack: newRedo
+      };
+    });
   };
 
   const submitBurger = async () => {
@@ -142,6 +173,7 @@ export default function App() {
       level: prev.level + 1,
       timeLeft: Math.max(10, 20 - prev.level), // Decrease time slightly as levels go up, floor at 10s
       playerStack: [],
+      redoStack: [],
       currentOrder: generateRandomOrder(prev.level + 1),
       screen: 'PLAYING',
       feedbackMessage: ''
@@ -325,9 +357,26 @@ export default function App() {
               <div className="bg-gray-800/90 backdrop-blur-md rounded-xl p-4 border border-gray-600 shadow-2xl">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-xs uppercase text-gray-400 font-bold tracking-widest">Kitchen Counter</span>
-                  <button onClick={resetStack} className="text-xs flex items-center gap-1 text-red-400 hover:text-red-300">
-                    <RotateCcw size={12}/> Reset Plate
-                  </button>
+                  <div className="flex gap-2">
+                    <button 
+                        onClick={handleUndo} 
+                        disabled={gameState.playerStack.length === 0}
+                        className="text-xs flex items-center gap-1 text-blue-400 hover:text-blue-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                        <Undo size={14}/> Undo
+                    </button>
+                    <button 
+                        onClick={handleRedo} 
+                        disabled={gameState.redoStack.length === 0}
+                        className="text-xs flex items-center gap-1 text-blue-400 hover:text-blue-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                        <Redo size={14}/> Redo
+                    </button>
+                    <div className="w-px h-4 bg-gray-600 mx-1"></div>
+                    <button onClick={resetStack} className="text-xs flex items-center gap-1 text-red-400 hover:text-red-300 transition-colors">
+                      <RotateCcw size={14}/> Reset
+                    </button>
+                  </div>
                 </div>
                 <div className="flex justify-center gap-2 flex-wrap">
                   {Object.values(INGREDIENTS).map((ing) => (
