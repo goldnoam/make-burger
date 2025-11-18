@@ -236,7 +236,7 @@ export default function App() {
         
         {/* Top Bar */}
         <div className="flex justify-between items-start pointer-events-auto">
-          <div className="bg-gray-800/80 backdrop-blur-md p-3 rounded-xl border border-gray-700 shadow-lg flex flex-col gap-1">
+          <div className="bg-gray-800/80 backdrop-blur-md p-3 rounded-xl border border-gray-700 shadow-lg flex flex-col gap-1 z-20">
              <h1 className="text-2xl text-yellow-400 game-font tracking-wider">Make Burger 3D</h1>
              {gameState.screen !== 'MENU' && (
                <div className="flex items-center gap-4 text-sm font-mono text-gray-300">
@@ -254,6 +254,38 @@ export default function App() {
             </div>
           )}
         </div>
+
+        {/* Ticket / Note Display */}
+        {gameState.screen === 'PLAYING' && (
+          <div className="absolute left-4 top-28 bottom-auto z-10 pointer-events-none transition-all duration-500 ease-in-out transform translate-x-0">
+            <div className="bg-[#fff9c4] text-gray-800 p-4 rounded shadow-2xl transform -rotate-2 max-w-[180px] md:max-w-[220px] border-t-8 border-[#e0e0e0] origin-top-left">
+               <div className="flex justify-center mb-2 border-b-2 border-dashed border-gray-400/50 pb-2">
+                  <span className="font-mono font-bold tracking-wider uppercase text-sm md:text-base">Order #{gameState.level}</span>
+               </div>
+               <ul className="font-mono text-xs md:text-sm space-y-1">
+                  {gameState.currentOrder.map((ing, index) => {
+                      // Check completion status
+                      const isDone = index < gameState.playerStack.length && gameState.playerStack[index] === ing;
+                      const isMistake = index < gameState.playerStack.length && gameState.playerStack[index] !== ing;
+                      const isNext = index === gameState.playerStack.length;
+
+                      return (
+                          <li key={index} className={`flex items-center justify-between gap-2 ${isDone ? 'opacity-40 line-through decoration-green-600 decoration-2' : ''} ${isNext ? 'font-bold text-black scale-105 origin-left' : 'text-gray-600'}`}>
+                              <div className="flex items-center gap-2">
+                                <div className="w-3 h-3 rounded-full border border-black/20" style={{backgroundColor: INGREDIENTS[ing].color}}></div>
+                                <span>{INGREDIENTS[ing].name}</span>
+                              </div>
+                              {isMistake && !isDone && <span className="text-red-600 font-bold text-lg">✕</span>}
+                          </li>
+                      );
+                  })}
+               </ul>
+               <div className="mt-3 pt-2 border-t-2 border-dashed border-gray-400/50 text-center opacity-50">
+                  <span className="text-[10px] font-mono uppercase">Official Docket</span>
+               </div>
+            </div>
+          </div>
+        )}
 
         {/* Center Screen Content */}
         <div className="flex-1 flex items-center justify-center pointer-events-auto">
