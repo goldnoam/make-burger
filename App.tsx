@@ -200,8 +200,7 @@ export default function App() {
   return (
     <div className="relative w-full h-screen bg-gray-900 text-white overflow-hidden flex flex-col">
       
-      {/* 3D Canvas Layer - Always rendered but maybe hidden/paused behind menus if needed, 
-          but for smooth transition we keep it. We can conditionally render contents. */}
+      {/* 3D Canvas Layer */}
       <div className="absolute inset-0 z-0">
         <Canvas shadows camera={{ position: [0, 3, 5], fov: 50 }}>
           <Suspense fallback={null}>
@@ -255,10 +254,13 @@ export default function App() {
           )}
         </div>
 
-        {/* Ticket / Note Display */}
-        {gameState.screen === 'PLAYING' && (
+        {/* Ticket / Note Display - Updated Condition and Visuals */}
+        {(gameState.screen === 'PLAYING' || gameState.screen === 'LEVEL_END' || gameState.screen === 'GAME_OVER') && (
           <div className="absolute left-4 top-28 bottom-auto z-10 pointer-events-none transition-all duration-500 ease-in-out transform translate-x-0">
-            <div className="bg-[#fff9c4] text-gray-800 p-4 rounded shadow-2xl transform -rotate-2 max-w-[180px] md:max-w-[220px] border-t-8 border-[#e0e0e0] origin-top-left">
+            <div className="bg-[#fff9c4] text-gray-800 p-4 rounded shadow-2xl transform -rotate-2 max-w-[180px] md:max-w-[220px] border-t-8 border-[#e0e0e0] origin-top-left relative">
+               {/* Red Pin */}
+               <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 w-4 h-4 rounded-full bg-red-600 shadow-md border border-red-800 z-20"></div>
+
                <div className="flex justify-center mb-2 border-b-2 border-dashed border-gray-400/50 pb-2">
                   <span className="font-mono font-bold tracking-wider uppercase text-sm md:text-base">Order #{gameState.level}</span>
                </div>
